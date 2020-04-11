@@ -26,6 +26,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-web-services'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.security:spring-security-web:5.0.0.RELEASE'
+    implementation "org.springframework.boot:spring-boot-starter-security:2.2.6.RELEASE"
+    implementation "org.json:json:20190722"
+    implementation "org.springframework.security:spring-security-web:5.0.0.RELEASE"
+    implementation "org.springframework.security:spring-security-config:3.0.0.RELEASE"
+    implementation 'org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.2.6.RELEASE'
+
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'com.microsoft.sqlserver:mssql-jdbc'
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
