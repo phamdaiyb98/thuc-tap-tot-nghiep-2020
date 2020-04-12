@@ -7,17 +7,25 @@ import java.util.UUID;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import haui.mobileshop.global.entity.AccessToken;
 import haui.mobileshop.global.entity.AccessTokenData;
+import haui.mobileshop.global.entity.Account;
 import haui.mobileshop.global.entity.Data;
 import haui.mobileshop.global.entity.UserDetails;
+import haui.mobileshop.global.service.AccountService;
+import haui.mobileshop.global.utils.MD5;
+
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -37,6 +45,12 @@ public class FacebookController {
     private final String REDIRECT_URI;
     private final String APP_ID;
     private final String APP_SECRET;
+    
+    @Autowired
+    AccountService accountService;
+    
+    @Autowired
+    ObjectFactory<HttpSession> httpSessionFactory;
 
     public FacebookController(
             @Value("${REDIRECT_URI}") String REDIRECT_URI,
@@ -111,9 +125,21 @@ public class FacebookController {
     }
 
     @GetMapping("/facebook/userinfo")
-    public UserDetails getUserDetails(@CookieValue("access_token") String access_token) {
-        UserDetails u =getUserDetailsFromAccessToken(access_token);
-        return getUserDetailsFromAccessToken(access_token);
+    public UserDetails getUserDetails(@CookieValue("access_token") String access_token, Model model) {
+        UserDetails u = getUserDetailsFromAccessToken(access_token);
+        Account userAccount;
+        if(accountService.findCustomerByUsernameAndEncryptedPassword(u.getName(), "12345678")!=null) {
+        	userAccount=accountService.findCustomerByUsernameAndEncryptedPassword(u.getName(), "12345678");
+        } else {
+        	userAccount = new Account();
+            userAccount.setUsername(u.getName());
+            userAccount.setPassword(MD5.encode("12345678"));
+            userAccount.setRole(false);
+            accountService.create(userAccount);
+		}
+        HttpSession session = httpSessionFactory.getObject();
+        session.setAttribute("currentUser", userAccount);
+        return u;
     }
 
     @GetMapping("/facebook/getLoginUri")
@@ -178,9 +204,10 @@ public class FacebookController {
         urlparams.put("fields", "id,name,email");
         LOGGER.info("Retrieving user details with {} and {}", accessToken, urlparams);
         try {
-            return restTemplate
+        	UserDetails u =restTemplate
                     .getForObject("https://graph.facebook.com/v2.9/me/?access_token={access_token}&fields={fields}",
                             UserDetails.class, urlparams);
+            return u;
         } catch (HttpStatusCodeException exception) {
             LOGGER.warn(exception.getResponseBodyAsString());
             throw new RuntimeException(String.valueOf(exception.getStatusCode()));

@@ -53,7 +53,7 @@
 				</span>
 
             <div class="topbar-child2" style="color: steelblue;font-weight: 700; margin-right: 15px;">
-					<span class="topbar-email" th:utext="${username}">
+					<span class="topbar-email" th:utext="${username}" id="userinfo">
 					</span>
             </div>
         </div>
@@ -495,7 +495,7 @@
         <div class="t-center s-text8 p-t-20">
             Copyright © 2020 All rights reserved. | This template is made with <i class="fa fa-heart-o"
                                                                                   aria-hidden="true"></i> by <a
-                href="https://colorlib.com" target="_blank">Phạm Đại</a>
+                href="https://colorlib.com" target="_blank"></a>
         </div>
     </div>
 </footer>
@@ -587,5 +587,71 @@
 </script>
 <!--===============================================================================================-->
 <script src="user/js/main.js"></script>
+<script>
+
+    var url = window.location.toString();
+
+    var code = getParameterByName("code", url);
+    var state = getParameterByName("state", url);
+
+    getLoginButtonUri();
+    function getLoginButtonUri() {
+        $.ajax({
+            url: "/facebook/getLoginUri",
+            success: function (res, status) {
+                $("#login").attr("href", res);
+            }
+        })
+    }
+
+    isAuthenticated();
+
+    function isAuthenticated() {
+        $.ajax({
+            url: "/facebook/auth",
+            success: function (res, status) {
+                console.log("Authenticated: ", res)
+                if (res === true) {
+                    showUserInfo()
+                }
+            },
+            error: function (res, status) {
+                console.error(res, status)
+            }
+        });
+    }
+
+    function showUserInfo() {
+        $.ajax({
+            url: "/facebook/userinfo",
+            success: function (res, status) {
+                console.log(res);
+                //$("#userinfo").html(res.name);
+            }
+        })
+    }
+
+    if (code && state) {
+        $.ajax({
+            url: "/facebook/login?code=" + code + "&state=" + state,
+            success: function (res, status) {
+                console.log(status);
+                window.location.replace("./")
+            }
+        });
+    }
+
+    function getParameterByName(name, url) {
+        if (!url) url = window.location.href;
+        name = name.replace(/[\[\]]/g, "\\$&");
+        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, " "));
+    }
+
+</script>
+
 </body>
 </html>
