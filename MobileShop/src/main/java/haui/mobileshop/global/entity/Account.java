@@ -7,21 +7,15 @@ import java.util.Set;
 @Table(name = "account")
 public class Account {
 
-    @Override
-    public String toString() {
-        return "Account{" +
-                "accountId=" + accountId +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                '}';
-    }
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long accountId;
 
     @Column(name = "username", unique = true, nullable = false)
     private String username;
+
+    @Column(name = "social_name",columnDefinition = "nvarchar(255)")
+    private String socialName;
 
     @Column(name = "password", nullable = false)
     private String password;
@@ -42,10 +36,6 @@ public class Account {
 
     public long getAccountId() {
         return accountId;
-    }
-
-    public void setAccountId(long accountId) {
-        this.accountId = accountId;
     }
 
     public String getUsername() {
@@ -70,5 +60,13 @@ public class Account {
 
     public void setRole(boolean role) {
         this.role = role;
+    }
+
+    public String getSocialName() {
+        return socialName;
+    }
+
+    public void setSocialName(String socialName) {
+        this.socialName = socialName;
     }
 }

@@ -1,4 +1,4 @@
-package haui.mobileshop.global.entity;
+package haui.mobileshop.global.dto;
 
 import org.springframework.http.HttpMethod;
 

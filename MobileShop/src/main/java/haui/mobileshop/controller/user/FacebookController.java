@@ -9,14 +9,15 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import haui.mobileshop.global.entity.AccessToken;
-import haui.mobileshop.global.entity.AccessTokenData;
+import haui.mobileshop.global.dto.AccessToken;
+import haui.mobileshop.global.dto.AccessTokenData;
 import haui.mobileshop.global.entity.Account;
-import haui.mobileshop.global.entity.Data;
-import haui.mobileshop.global.entity.UserDetails;
+import haui.mobileshop.global.dto.Data;
+import haui.mobileshop.global.dto.UserDetails;
 import haui.mobileshop.global.service.AccountService;
 import haui.mobileshop.global.utils.MD5;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +35,6 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 
-
 @RestController
 public class FacebookController {
 
@@ -45,10 +45,10 @@ public class FacebookController {
     private final String REDIRECT_URI;
     private final String APP_ID;
     private final String APP_SECRET;
-    
+
     @Autowired
     AccountService accountService;
-    
+
     @Autowired
     ObjectFactory<HttpSession> httpSessionFactory;
 
@@ -77,7 +77,7 @@ public class FacebookController {
         String appAccessToken;
         try {
             appAccessToken = getAppAccessToken();
-        } catch (RuntimeException e) {
+        } catch (JSONException e) {
             return ResponseEntity.status(Integer.parseInt(e.getMessage())).build();
         }
 
@@ -126,20 +126,21 @@ public class FacebookController {
 
     @GetMapping("/facebook/userinfo")
     public UserDetails getUserDetails(@CookieValue("access_token") String access_token, Model model) {
-        UserDetails u = getUserDetailsFromAccessToken(access_token);
+        UserDetails userDetails = getUserDetailsFromAccessToken(access_token);
         Account userAccount;
-        if(accountService.findCustomerByUsernameAndEncryptedPassword(u.getName(), "12345678")!=null) {
-        	userAccount=accountService.findCustomerByUsernameAndEncryptedPassword(u.getName(), "12345678");
+        if (accountService.findSocialAccountInfo(userDetails.getId()) != null) {
+            userAccount = accountService.findSocialAccountInfo(userDetails.getId());
         } else {
-        	userAccount = new Account();
-            userAccount.setUsername(u.getName());
-            userAccount.setPassword(MD5.encode("12345678"));
+            userAccount = new Account();
+            userAccount.setUsername(userDetails.getId());
+            userAccount.setPassword("");
+            userAccount.setSocialName(userDetails.getName());
             userAccount.setRole(false);
             accountService.create(userAccount);
-		}
+        }
         HttpSession session = httpSessionFactory.getObject();
         session.setAttribute("currentUser", userAccount);
-        return u;
+        return userDetails;
     }
 
     @GetMapping("/facebook/getLoginUri")
@@ -157,7 +158,7 @@ public class FacebookController {
         AccessTokenData accessTokenData;
         try {
             accessTokenData = inspectAccessToken(access_token, getAppAccessToken());
-        } catch (RuntimeException e) {
+        } catch (JSONException e) {
             LOGGER.warn(e.getMessage());
             return false;
         }
@@ -204,7 +205,7 @@ public class FacebookController {
         urlparams.put("fields", "id,name,email");
         LOGGER.info("Retrieving user details with {} and {}", accessToken, urlparams);
         try {
-        	UserDetails u =restTemplate
+            UserDetails u = restTemplate
                     .getForObject("https://graph.facebook.com/v2.9/me/?access_token={access_token}&fields={fields}",
                             UserDetails.class, urlparams);
             return u;
@@ -214,21 +215,16 @@ public class FacebookController {
         }
     }
 
-    public String getAppAccessToken() {
+    public String getAppAccessToken() throws JSONException {
         Map<String, String> urlparams = new HashMap<>();
         urlparams.put("client_id", APP_ID);
         urlparams.put("client_secret", APP_SECRET);
         LOGGER.info("Retrieving app access token");
 
-        try {
-            String json = restTemplate.getForObject(
-                    "https://graph.facebook.com/oauth/access_token?client_id={client_id}&client_secret={client_secret"
-                            + "}&grant_type=client_credentials",
-                    String.class, urlparams);
-            return new JSONObject(json).getString("access_token");
-        } catch (HttpStatusCodeException exception) {
-            LOGGER.warn(exception.getResponseBodyAsString());
-            throw new RuntimeException(String.valueOf(exception.getStatusCode()));
-        }
+        String json = restTemplate.getForObject(
+                "https://graph.facebook.com/oauth/access_token?client_id={client_id}&client_secret={client_secret"
+                        + "}&grant_type=client_credentials",
+                String.class, urlparams);
+        return new JSONObject(json).getString("access_token");
     }
 }

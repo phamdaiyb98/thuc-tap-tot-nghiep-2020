@@ -1,4 +1,4 @@
-package haui.mobileshop.global.entity;
+package haui.mobileshop.global.dto;
 
 public class AccessTokenData {
     private long app_id;

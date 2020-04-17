@@ -34,4 +34,7 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     @Query("select e.password from Account e where  e.role = true")
     String getAdminPassword();
+
+    @Query("select a from Account a where a.username = :id")
+    Account getSocialAccountInfo(@Param("id") String id);
 }

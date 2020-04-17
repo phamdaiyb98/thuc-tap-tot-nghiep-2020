@@ -54,7 +54,7 @@ public class UserProductController {
         Account currentUser = (Account) httpSession.getAttribute("currentUser");
         String username = "Bạn chưa đăng nhập";
         if (currentUser != null) {
-            username = currentUser.getUsername();
+            username = currentUser.getSocialName() != null ? currentUser.getSocialName() : currentUser.getUsername();
         }
         model.addAttribute("username", username);
 

@@ -14,6 +14,8 @@ public interface AccountService {
 
     Account findCustomerByUsernameAndEncryptedPassword(String username, String password);
 
+    Account findSocialAccountInfo(String id);
+
     int countTotalUser();
 
     void changeAdminPassword(String password);

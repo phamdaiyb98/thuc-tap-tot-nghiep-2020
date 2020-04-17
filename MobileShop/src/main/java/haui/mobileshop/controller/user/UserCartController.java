@@ -41,10 +41,10 @@ public class UserCartController {
         if (currentUser != null) {
             List<Product> productList = cartService.getAllProductCartByUser(currentUser.getAccountId());
             int totalPrice = productList.stream().mapToInt(Product::getPrice).sum();
-            String username = currentUser.getUsername();
+            model.addAttribute("username",  currentUser.getUsername());
+
             model.addAttribute("products", productList);
             model.addAttribute("totalPrice", totalPrice);
-            model.addAttribute("username", username);
             return "user-cart";
         } else {
             return "redirect:/login?redirectUrl=cart";

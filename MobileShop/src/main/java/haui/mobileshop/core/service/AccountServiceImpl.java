@@ -39,6 +39,11 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    public Account findSocialAccountInfo(String id) {
+        return accountRepository.getSocialAccountInfo(id);
+    }
+
+    @Override
     public int countTotalUser() {
         return accountRepository.findAllUser().size();
     }

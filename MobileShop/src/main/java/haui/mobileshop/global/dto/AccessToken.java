@@ -1,4 +1,4 @@
-package haui.mobileshop.global.entity;
+package haui.mobileshop.global.dto;
 
 public class AccessToken {
     private String access_token;

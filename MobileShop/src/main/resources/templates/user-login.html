@@ -74,7 +74,9 @@
                 </div>
 
                 <div class="container-login100-form-btn">
-                    <a id="login" href="">Login with facebook</a>
+                    <a id="login" href=""
+                       style="width: 30px;height: 30px;background-color: #3b5998;color: #fff;text-align: center;"><i
+                            class="fa fa-facebook-f"></i></a>
                 </div>
 
             </form>
@@ -110,6 +112,7 @@
     var state = getParameterByName("state", url);
 
     getLoginButtonUri();
+
     function getLoginButtonUri() {
         $.ajax({
             url: "/facebook/getLoginUri",
@@ -130,8 +133,7 @@
                     // $("#login").hide();
                     // $("#logout").show();
                     showUserInfo()
-                }
-                else {
+                } else {
                     $("#login").show();
                     // $("#logout").hide();
                 }
